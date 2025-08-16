@@ -1,120 +1,204 @@
 <?php
-namespace DtfReseller;
 
-if (!defined('ABSPATH'))
-    exit;
+declare(strict_types=1);
 
-class DtfReseller_Updater
+/**
+ * Update WordPress plugin from GitHub Private Repository.
+ */
+class GhPluginUpdater
 {
     private $file;
-    private $plugin;
+    private $plugin_data;
     private $basename;
-    private $username;
-    private $repo;
-    private $token;
-    private $api_response;
+    private $active = false;
+    private $github_response;
 
-    public function __construct($file, $username, $repo, $token = '')
+    public function __construct($file)
     {
         $this->file = $file;
-        $this->username = $username;
-        $this->repo = $repo;
-        $this->token = $token;
-
         $this->basename = plugin_basename($this->file);
-        $this->plugin = get_plugin_data($this->file);
+    }
 
-        add_filter('pre_set_site_transient_update_plugins', [$this, 'check_update']);
-        add_filter('plugins_api', [$this, 'plugins_api'], 10, 3);
+    /**
+     * Init GitHub Plugin Updater.
+     */
+    public function init(): void
+    {
+        add_filter('pre_set_site_transient_update_plugins', [$this, 'modify_transient'], 10, 1);
+        add_filter('http_request_args', [$this, 'set_header_token'], 10, 2);
+        add_filter('plugins_api', [$this, 'plugin_popup'], 10, 3);
         add_filter('upgrader_post_install', [$this, 'after_install'], 10, 3);
+
+        file_put_contents(__DIR__ . '/log.txt', 'construct calling' . PHP_EOL, FILE_APPEND);
+
+
 
         delete_site_transient('update_plugins');
         wp_update_plugins();
     }
 
-    private function get_repo_info()
+    /**
+     * If new version exists, update transient with GitHub info.
+     *
+     * @param object $transient Transient object with plugins information.
+     */
+    public function modify_transient(object $transient): object
     {
-        if (is_null($this->api_response)) {
-            $url = "https://api.bitbucket.org/2.0/repositories/TDG-D2C/dtf-reseller/downloads";
+        file_put_contents(__DIR__ . '/log.txt', 'modify_transient calling' . PHP_EOL, FILE_APPEND);
+        if (!property_exists($transient, 'checked')) {
+            return $transient;
+        }
 
-            // Basic Auth with App Password
-            $username = 'sagor_dev';
-            $app_password = 'ATBB7VW4Xmg9JTWve8dEgm3Apccd4A4BA6F7';
-            $credentials = base64_encode($username . ':' . $app_password);
+        $this->get_repository_info();
+        $this->get_plugin_data();
 
-            $args = [
-                'headers' => [
-                    'Authorization' => 'Basic ' . $credentials
-                ]
+        file_put_contents(__DIR__ . '/log.txt', '$this->github_response: ' . print_r($this->github_response, true) . PHP_EOL, FILE_APPEND);
+        if (version_compare($this->github_response['tag_name'] ?? 0, $transient->checked[$this->basename], 'gt')) {
+            $plugin = [
+                'url' => $this->plugin_data['PluginURI'],
+                'slug' => current(explode('/', $this->basename)),
+                'package' => $this->github_response['zipball_url'],
+                'new_version' => $this->github_response['tag_name'],
             ];
 
-            $response = wp_remote_get($url, $args);
-
-            if (is_wp_error($response)) {
-                file_put_contents(__DIR__ . '/log.txt', 'WP_Error: ' . $response->get_error_message() . PHP_EOL, FILE_APPEND);
-                return;
-            }
-
-            $code = wp_remote_retrieve_response_code($response);
-            if ($code !== 200) {
-                file_put_contents(__DIR__ . '/log.txt', "HTTP code: $code" . PHP_EOL, FILE_APPEND);
-                return;
-            }
-
-            $data = json_decode(wp_remote_retrieve_body($response));
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                file_put_contents(__DIR__ . '/log.txt', 'JSON decode error: ' . json_last_error_msg() . PHP_EOL, FILE_APPEND);
-                return;
-            }
-
-            file_put_contents(__DIR__ . '/log.txt', '$data: ' . print_r($data, true) . PHP_EOL, FILE_APPEND);
-
-            if (!empty($data->values)) {
-                // Sort by created_on descending to get latest file
-                usort($data->values, function ($a, $b) {
-                    return strtotime($b->created_on) - strtotime($a->created_on);
-                });
-                $this->api_response = $data->values[0]; // latest file
-            }
+            $transient->response[$this->basename] = (object) $plugin;
         }
-    }
 
 
-    public function check_update($transient)
-    {
-        if (empty($transient->checked))
-            return $transient;
-
-        $this->get_repo_info();
-        if ($this->api_response) {
-            $remote_version = preg_replace('/[^0-9\.]/', '', $this->api_response->name); // Extract version
-            if (version_compare($this->plugin['Version'], $remote_version, '<')) {
-                $obj = new \stdClass();
-                $obj->slug = $this->basename;
-                $obj->new_version = $remote_version;
-                $obj->url = '';
-                $obj->package = $this->api_response->links->self->href;
-
-                $transient->response[$this->basename] = $obj;
-            }
-        }
 
         return $transient;
     }
 
-    public function plugins_api($false, $action, $response)
+    /**
+     * Complete details of new plugin version on popup.
+     *
+     * @param array|false|object $result The result object or array. Default false.
+     * @param string             $action The type of information being requested from the Plugin Installation API.
+     * @param object             $args   Plugin API arguments.
+     */
+    public function plugin_popup(bool $result, string $action, object $args)
     {
-        if (empty($response->slug) || $response->slug !== $this->basename)
-            return $false;
+        if ('plugin_information' !== $action || empty($args->slug)) {
+            return false;
+        }
+
+        if ($args->slug == current(explode('/', $this->basename))) {
+            $this->get_repository_info();
+            $this->get_plugin_data();
+
+            $plugin = [
+                'name' => $this->plugin_data['Name'],
+                'slug' => $this->basename,
+                'requires' => $this->plugin_data['RequiresWP'],
+                'tested' => $this->plugin_data['TestedUpTo'],
+                'version' => $this->github_response['tag_name'],
+                'author' => $this->plugin_data['AuthorName'],
+                'author_profile' => $this->plugin_data['AuthorURI'],
+                'last_updated' => $this->github_response['published_at'],
+                'homepage' => $this->plugin_data['PluginURI'],
+                'short_description' => $this->plugin_data['Description'],
+                'sections' => [
+                    'Description' => $this->plugin_data['Description'],
+                    'Updates' => $this->github_response['body'],
+                ],
+                'download_link' => $this->github_response['zipball_url'],
+            ];
+
+            return (object) $plugin;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Active plugin after install new version.
+     *
+     * @param bool  $response   Installation response.
+     * @param array $hook_extra Extra arguments passed to hooked filters.
+     * @param array $result     Installation result data.
+     */
+    public function after_install(bool $response, array $hook_extra, array $result): bool
+    {
+        global $wp_filesystem;
+
+        $install_directory = plugin_dir_path($this->file);
+        $wp_filesystem->move($result['destination'], $install_directory);
+        $result['destination'] = $install_directory;
+
+        if ($this->active) {
+            activate_plugin($this->basename);
+        }
+
         return $response;
     }
 
-    public function after_install($response, $hook_extra, $result)
+    /**
+     * GitHub access_token param was deprecated. We need to set header with token for requests.
+     *
+     * @param array  $args HTTP request arguments.
+     * @param string $url  The request URL.
+     */
+    public function set_header_token(array $parsed_args, string $url): array
     {
-        global $wp_filesystem;
-        $plugin_folder = WP_PLUGIN_DIR . '/' . dirname($this->basename);
-        $wp_filesystem->move($result['destination'], $plugin_folder);
-        $result['destination'] = $plugin_folder;
-        return $result;
+        $parsed_url = parse_url($url);
+
+        if ('api.github.com' === ($parsed_url['host'] ?? null) && isset($parsed_url['query'])) {
+            parse_str($parsed_url['query'], $query);
+
+            if (isset($query['access_token'])) {
+                $parsed_args['headers']['Authorization'] = 'token ' . $query['access_token'];
+
+                $this->active = is_plugin_active($this->basename);
+            }
+        }
+
+        return $parsed_args;
+    }
+
+    /**
+     * Gets repository data from GitHub.
+     */
+    private function get_repository_info(): void
+    {
+        if (null !== $this->github_response) {
+            return;
+        }
+
+        $args = [
+            'method' => 'GET',
+            'timeout' => 5,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'headers' => [
+                'Authorization' => 'token ' . GHPU_AUTH_TOKEN,
+            ],
+            'sslverify' => true,
+        ];
+        $request_uri = sprintf(GH_REQUEST_URI, GHPU_USERNAME, GHPU_REPOSITORY);
+
+        $request = wp_remote_get($request_uri, $args);
+        $response = json_decode(wp_remote_retrieve_body($request), true);
+
+        if (is_array($response)) {
+            $response = current($response);
+        }
+
+        if (GHPU_AUTH_TOKEN) {
+            $response['zipball_url'] = add_query_arg('access_token', GHPU_AUTH_TOKEN, $response['zipball_url']);
+        }
+
+        $this->github_response = $response;
+    }
+
+    /**
+     * Gets plugin data.
+     */
+    private function get_plugin_data(): void
+    {
+        if (null !== $this->plugin_data) {
+            return;
+        }
+
+        $this->plugin_data = get_plugin_data($this->file);
     }
 }

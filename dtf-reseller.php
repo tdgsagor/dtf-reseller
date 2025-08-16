@@ -6,7 +6,7 @@ use DtfReseller\DtfReseller_Updater;
 /**
  * Plugin Name: DTF Reseller
  * Description: Sync products from main site to subsites and orders from subsites to main site
- * Version: 1.0.7
+ * Version: 1.0.6
  * Author: TheDevGarden
  * Network: true
  */
@@ -76,11 +76,14 @@ function dtfreseller_sync_init()
 
 add_action('plugins_loaded', 'dtfreseller_sync_init');
 
-add_action('init', function () {
-    new DtfReseller_Updater(
-        __FILE__,
-        'sagor_dev',
-        'dtf-reseller',
-        'ATBB7VW4Xmg9JTWve8dEgm3Apccd4A4BA6F7'
-    );
-});
+if (is_admin()) {
+    define('GH_REQUEST_URI', 'https://api.github.com/repos/%s/%s/releases');
+    define('GHPU_USERNAME', 'tdgsagor');
+    define('GHPU_REPOSITORY', 'dtf-reseller');
+    define('GHPU_AUTH_TOKEN', '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');
+
+    include_once plugin_dir_path(__FILE__) . '/GhPluginUpdater.php';
+
+    $updater = new GhPluginUpdater(__FILE__);
+    $updater->init();
+}
