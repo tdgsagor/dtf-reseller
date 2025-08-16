@@ -1,0 +1,280 @@
+:root {
+    --dtf-light-blue: #0193CF;
+    --dtf-light-blue-20: rgba(1, 147, 207, 0.2);
+    --dtf-medium-blue: #004F6F;
+    --dtf-dark-blue: #01364C;
+    --dtf-deep-blue: #002838;
+}
+
+html.dtfreseller-page {
+    font-size: 13px;
+}
+
+.dtfreseller-page {
+    background: #fff;
+}
+
+.dtf-reseller-wrapper {
+    background: #fff;
+}
+
+.dtf-reseller-wrapper .dtfreseller-page-title {
+    color: var(--dtf-dark-blue);
+    font-size: 1.875rem;
+    font-weight: 600;
+}
+
+.dtf-reseller-wrapper .dtfreseller-tab-subtitle {
+    color: #004F6F;
+    font-size: 1.875rem;
+    font-weight: 600;
+    margin-top: 60px;
+    margin-bottom: 30px;
+}
+
+.dtf-reseller-wrapper .nav-tab-wrapper {
+    display: flex;
+    gap: 10px;
+    padding-bottom: 26px;
+    border-color: #E9F1FF;
+}
+
+.dtf-reseller-wrapper .nav-tab-wrapper .nav-tab {
+    color: var(--dtf-deep-blue);
+    font-size: 1rem;
+    font-weight: 500;
+    background: #fff;
+    border: 1px solid var(--dtf-light-blue-20);
+    padding: 14px 24px;
+    border-radius: 4px;
+    margin: 0;
+}
+
+.dtf-reseller-wrapper .nav-tab-wrapper .nav-tab.nav-tab-active {
+    background: var(--dtf-dark-blue);
+    border: 1px solid var(--dtf-dark-blue);
+    color: #fff;
+}
+
+.dtf-reseller-wrapper>.wrap,
+.dtf-reseller-wrapper>form {
+    background-color: #0193CF0D;
+    border: 1px solid #0193CF1A;
+    border-radius: 4px;
+    padding: 40px;
+    margin: 0;
+    margin-top: 26px;
+}
+
+.dtf-reseller-wrapper .dtfreseller-tab-title {
+    color: #004F6F;
+    font-size: 1.875rem;
+    font-weight: 600;
+    padding: 0;
+    margin-bottom: 16px;
+}
+
+.dtf-reseller-wrapper .tablenav.top {
+    background-color: #003C52;
+    margin: 0;
+}
+
+.dtf-reseller-wrapper .tablenav.top {
+    background-color: #003C52;
+    margin: 0;
+    padding: 14px;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+}
+
+.dtf-reseller-wrapper .tablenav .actions select {
+    border: none;
+    color: #002838;
+}
+
+.dtf-reseller-wrapper .wp-core-ui .button,
+.wp-core-ui .button-secondary {
+    color: #002838;
+    border: none;
+    padding: 10px 20px;
+    line-height: 0;
+}
+
+.dtf-reseller-wrapper .widefat {
+    padding: 0 30px;
+    border: 1px solid #0193CF33 !important;
+    border-top: none;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.dtf-reseller-wrapper .widefat tr {
+    background-color: #FFFFFF99 !important;
+    border-bottom: 1px solid red !important;
+}
+
+.dtf-reseller-wrapper .widefat th a,
+.dtf-reseller-wrapper .widefat th {
+    color: #002838 !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+}
+
+.dtf-reseller-wrapper .widefat td,
+.dtf-reseller-wrapper .widefat th {
+    border-bottom: 1px solid #E9F1FF !important;
+    vertical-align: middle !important;
+}
+
+.dtf-reseller-wrapper .widefat td {
+    font-size: 1rem;
+}
+
+.dtf-reseller-wrapper .widefat tbody td {
+    color: #003C52 !important;
+}
+
+.dtf-reseller-wrapper .form-table input {
+    background-color: #FFFFFF80;
+    border: 1px solid #0193CF33;
+    padding: 10px 20px;
+    font-size: 1.125rem;
+}
+
+.dtf-reseller-wrapper .form-table input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dtf-reseller-wrapper .form-table th {
+    color: #002838;
+    font-weight: 600;
+    font-size: 1.125rem;
+    vertical-align: middle !important;
+}
+
+.dtf-reseller-wrapper .wc-wp-version-gte-53 .select2-container .select2-selection--multiple {
+    border-color: #0193CF33;
+}
+
+
+
+/* Select2 Design Started */
+.dtf_select2__container {
+    width: 25em;
+}
+
+/* Ensure wrapping of multiple selected items */
+.dtf_select2__container .select2-container--default .select2-selection--multiple {
+    min-height: 38px;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    box-sizing: border-box;
+    overflow: auto;
+    max-height: 150px;
+    /* limit height if too many tags */
+}
+
+/* Selected tags (choices) styling */
+.dtf_select2__container .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #007cba;
+    border: none;
+    border-radius: 2px;
+    color: #fff;
+    padding: 2px 6px 2px 18px;
+    margin: 2px;
+    font-size: 13px;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+/* Ensure container stretches to fit */
+.dtf_select2__container .select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #007cba;
+}
+
+/* Make sure text doesn't overflow */
+.dtf_select2__container .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dtf_select2__container .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: white;
+    bottom: 0;
+}
+/* Select2 Design Ended */
+
+/* For toggle password */
+.dtf-reseller-wrapper .toggle-password-container {
+    width: 25em;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.dtf-reseller-wrapper .form-table .toggle-password-container input {
+    background-color: #FFFFFF80;
+    border: 1px solid #0193CF33;
+    padding: 10px 20px;
+    font-size: 1.125rem;
+    width: 100% !important;
+    padding-right: 50px;
+}
+
+.dtf-reseller-wrapper .toggle-password {
+    background: none;
+    border: none;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-left: 5px;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translate(-25px, -50%);
+}
+
+.dtf-reseller-wrapper #select-all-products,
+.dtf-reseller-wrapper #select-all-sites {
+    margin: 0;
+}
+
+/* For icon */
+.toplevel_page_dtfreseller-resellers img,
+#toplevel_page_dtfreseller img {
+    width: 20px;
+    height: auto;
+}
+
+li.toplevel_page_dtfreseller .wp-menu-image::before,
+li.toplevel_page_dtfreseller-resellers .wp-menu-image::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url('../images/icon.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+li.toplevel_page_dtfreseller:hover .wp-menu-image::before,
+li.toplevel_page_dtfreseller-resellers:hover .wp-menu-image::before {
+    background-image: url('../images/icon-hover.svg');
+}
+
+li.toplevel_page_dtfreseller.current .wp-menu-image::before,
+li.toplevel_page_dtfreseller-resellers.current .wp-menu-image::before {
+    background-image: url('../images/icon-active.png');
+}
