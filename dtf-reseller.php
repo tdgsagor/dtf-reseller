@@ -6,7 +6,7 @@ use DtfReseller\DtfReseller_Updater;
 /**
  * Plugin Name: DTF Reseller
  * Description: Sync products from main site to subsites and orders from subsites to main site
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: TheDevGarden
  * Network: true
  */
