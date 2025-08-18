@@ -29,9 +29,6 @@ class GhPluginUpdater
         add_filter('plugins_api', [$this, 'plugin_popup'], 10, 3);
         add_filter('upgrader_post_install', [$this, 'after_install'], 10, 3);
 
-        file_put_contents(__DIR__ . '/log.txt', 'construct calling' . PHP_EOL, FILE_APPEND);
-
-
 
         delete_site_transient('update_plugins');
         wp_update_plugins();
@@ -44,7 +41,6 @@ class GhPluginUpdater
      */
     public function modify_transient(object $transient): object
     {
-        file_put_contents(__DIR__ . '/log.txt', 'modify_transient calling' . PHP_EOL, FILE_APPEND);
         if (!property_exists($transient, 'checked')) {
             return $transient;
         }
@@ -52,7 +48,6 @@ class GhPluginUpdater
         $this->get_repository_info();
         $this->get_plugin_data();
 
-        file_put_contents(__DIR__ . '/log.txt', '$this->github_response: ' . print_r($this->github_response, true) . PHP_EOL, FILE_APPEND);
         if (version_compare($this->github_response['tag_name'] ?? 0, $transient->checked[$this->basename], 'gt')) {
             $plugin = [
                 'url' => $this->plugin_data['PluginURI'],

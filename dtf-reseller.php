@@ -80,9 +80,9 @@ if (is_admin()) {
     define('GH_REQUEST_URI', 'https://api.github.com/repos/%s/%s/releases');
     define('GHPU_USERNAME', 'tdgsagor');
     define('GHPU_REPOSITORY', 'dtf-reseller');
-    define('GHPU_AUTH_TOKEN', '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');
+    define('GHPU_AUTH_TOKEN', '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');
 
-    include_once plugin_dir_path(__FILE__) . '/GhPluginUpdater.php';
+    // include_once plugin_dir_path(__FILE__) . '/GhPluginUpdater.php';
 
     $updater = new GhPluginUpdater(__FILE__);
     $updater->init();
