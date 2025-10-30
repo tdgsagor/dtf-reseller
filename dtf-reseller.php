@@ -28,6 +28,11 @@ require_once DTFRESELLER_SYNC_PATH . 'includes/web2ink/index.php';
 /* For Common Function */
 require_once DTFRESELLER_SYNC_PATH . 'admin/common-functions.php';
 
+// Load private credentials if present (not committed; see .gitignore)
+if (file_exists(DTFRESELLER_SYNC_PATH . 'credentials.php')) {
+    require_once DTFRESELLER_SYNC_PATH . 'credentials.php';
+}
+
 add_action('wp_enqueue_scripts', 'my_custom_checkout_script');
 function my_custom_checkout_script()
 {
@@ -80,15 +85,19 @@ function dtfreseller_sync_init()
 add_action('plugins_loaded', 'dtfreseller_sync_init');
 
 if (is_admin()) {
-    define('GH_REQUEST_URI', 'https://api.github.com/repos/%s/%s/releases');
-    define('GHPU_USERNAME', 'tdgsagor');
-    define('GHPU_REPOSITORY', 'dtf-reseller');
-    define('GHPU_AUTH_TOKEN', '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');
+    if (!defined('GH_REQUEST_URI')) {
+        define('GH_REQUEST_URI', 'https://api.github.com/repos/%s/%s/releases');
+    }
 
-    // include_once plugin_dir_path(__FILE__) . '/GhPluginUpdater.php';
-
-    $updater = new GhPluginUpdater(__FILE__);
-    $updater->init();
+    // Only initialize updater when required credentials are available
+    if (
+        defined('GHPU_USERNAME') &&
+        defined('GHPU_REPOSITORY') &&
+        defined('GHPU_AUTH_TOKEN') && GHPU_AUTH_TOKEN
+    ) {
+        $updater = new GhPluginUpdater(__FILE__);
+        $updater->init();
+    }
 }
 
 add_action('template_redirect', function () {
