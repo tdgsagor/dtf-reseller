@@ -1,0 +1,6 @@
+calling from first
+post type: product
+post status: publish
+calling from last
+calling from first
+calling from first

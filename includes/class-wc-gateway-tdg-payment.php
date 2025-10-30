@@ -59,23 +59,26 @@ class WC_Gateway_TDG_Payment extends WC_Payment_Gateway
             return;
         }
 
-        $total_paid = 0; // what customer paid
-        $total_original = 0; // what customer would've paid using _original_product_price
+        $default_reseller_margin = get_option('dtfr_default_product_margin', 0);
+        $application_fee = 0;
 
         foreach ($order->get_items() as $item) {
-            $qty = $item->get_quantity();
-            $line_total = $item->get_total(); // actual line total (includes price * qty, excludes tax/shipping)
+            $line_total = $item->get_total();
 
-            $product = $item->get_product();
-            if (!$product)
-                continue;
+            $_original_product_id = get_post_meta($item->get_product_id(), '_original_product_id', true);
+            
+            if ($_original_product_id) {
+                $reseller_margin = get_post_meta($item->get_product_id(), '_ms_price_margin', true);
+                $reseller_margin = $reseller_margin ? $reseller_margin : $default_reseller_margin;
+                $application_fee += $line_total * (100 - $reseller_margin) / 100;
+            } else {
+                switch_to_blog(get_main_site_id());
+                $main_site_commission = get_site_option('reseller_product_comission');
+                restore_current_blog();
+                $application_fee += $line_total * ($main_site_commission) / 100;
+            }
 
-            $product_id = $product->get_id();
-            $original_price = get_post_meta($product_id, '_original_product_price', true);
-            $original_price = floatval($original_price);
 
-            $total_paid += $line_total;
-            $total_original += ($original_price * $qty);
         }
 
         require_once plugin_dir_path(__FILE__) . 'stripe-api.php'; // if not autoloaded
@@ -84,20 +87,25 @@ class WC_Gateway_TDG_Payment extends WC_Payment_Gateway
 
         try {
             $client_id = get_option('smc_client_id');
-            $application_fee = intval($order->get_total() * 0.10 * 100); // 10% fee
 
             $charge = \Stripe\Charge::create([
                 'amount' => intval($order->get_total() * 100),
                 'currency' => strtolower(get_woocommerce_currency()),
                 'source' => sanitize_text_field($_POST['tdg_stripe_token']),
                 'description' => 'Order #' . $order_id,
-                'application_fee_amount' => $total_original * 100,
+                'application_fee_amount' => intval($application_fee * 100),
                 'transfer_data' => [
                     'destination' => $client_id
                 ]
             ]);
 
             $order->payment_complete();
+
+            // Save order meta
+            $order->update_meta_data('application_fee', $application_fee);
+            $order->update_meta_data('reseller_fee', $order->get_total() - $application_fee);
+            $order->save();
+
             return ['result' => 'success', 'redirect' => $this->get_return_url($order)];
         } catch (Exception $e) {
             wc_add_notice('Payment errorss: ' . $e->getMessage(), 'error');

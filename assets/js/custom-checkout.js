@@ -14,6 +14,8 @@ jQuery(function ($) {
         }
     }
 
+    setTimeout(initStripe, 2000); // wait for DOM render
+
     // Mount Stripe elements when payment method is selected
     $(document.body).on('change', 'input[name="payment_method"]', function () {
         if ($(this).val() === 'tdg_payment') {
@@ -31,7 +33,6 @@ jQuery(function ($) {
         if (stripeToken) return true;
 
         stripe.createToken(card).then(function (result) {
-            console.log(result)
             if (result.error) {
                 $('#card-errors').text(result.error.message);
                 stripeToken = null;

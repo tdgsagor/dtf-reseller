@@ -3,7 +3,8 @@ namespace DtfReseller\Admin\Tabs\Orders;
 
 class OrderEdit
 {
-    public function __construct() {
+    public function __construct()
+    {
         $this->dtfreseller_order_update();
     }
     public function render($order_id, $site_id)
@@ -21,7 +22,7 @@ class OrderEdit
         <div class="wrap">
             <h1>Edit Order #<?php echo esc_html($order->get_id()); ?></h1>
             <form method="post">
-                <?php wp_nonce_field('dtfreseller_order_update'); ?>
+                <?php wp_nonce_field('dtfreseller_order_update', 'dtfreseller_order_update_nonce'); ?>
                 <input type="hidden" name="order_id" value="<?php echo esc_attr($order_id); ?>">
                 <input type="hidden" name="site_id" value="<?php echo esc_attr($site_id); ?>">
 
@@ -67,41 +68,51 @@ class OrderEdit
 
     private function dtfreseller_order_update()
     {
-        if (isset($_POST['update_order']) && check_admin_referer('dtfreseller_order_update')) {
-    
+        // if (isset($_POST['update_order']) && check_admin_referer('dtfreseller_order_update', 'dtfreseller_order_update_nonce')) {
+
+
+        if (
+            is_network_admin() &&
+            isset($_GET['page']) &&
+            $_GET['page'] === 'dtfreseller' &&
+            (!isset($_GET['tab']) || $_GET['tab'] === 'orders') &&
+            isset($_POST['update_order']) &&
+            check_admin_referer('dtfreseller_order_update', 'dtfreseller_order_update_nonce')
+        ) {
+
             $order_id = isset($_POST['order_id']) ? absint($_POST['order_id']) : 0;
-            $site_id  = isset($_POST['site_id']) ? absint($_POST['site_id']) : 0;
-    
+            $site_id = isset($_POST['site_id']) ? absint($_POST['site_id']) : 0;
+
             if (!$order_id || !$site_id) {
                 wp_redirect(add_query_arg('message', 'missing_data', admin_url('admin.php?page=your_page_slug')));
                 exit;
             }
-    
+
             switch_to_blog($site_id);
             $order = wc_get_order($order_id);
-    
+
             if (!$order) {
                 restore_current_blog();
                 wp_redirect(add_query_arg('message', 'order_not_found', admin_url('admin.php?page=your_page_slug')));
                 exit;
             }
-    
+
             // Update customer name
             if (isset($_POST['customer_name'])) {
                 $names = explode(' ', sanitize_text_field($_POST['customer_name']), 2);
                 $order->set_billing_first_name($names[0]);
                 $order->set_billing_last_name(isset($names[1]) ? $names[1] : '');
             }
-    
+
             // Update order total
             if (isset($_POST['order_total'])) {
                 $order->set_total(floatval($_POST['order_total']));
             }
-    
+
             $order->save();
             // restore_current_blog();
             // wp_redirect(add_query_arg('message', 'order_updated', admin_url('admin.php?page=your_page_slug')));
             // exit;
         }
-    }    
+    }
 }

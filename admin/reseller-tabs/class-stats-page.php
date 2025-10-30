@@ -54,6 +54,21 @@ class ResellerStatsPage
             $stats['total_sales'] += $order_total;
             $stats['total_orders']++;
 
+            $application_fee = floatval($order->get_meta('application_fee'));
+            $reseller_fee = floatval($order->get_meta('reseller_fee'));
+
+            // Initialize site totals if not set
+            if (!isset($stats['site_totals'])) {
+                $stats['site_totals'] = [
+                    'income' => 0,
+                    'profit' => 0,
+                ];
+            }
+
+            // Update site totals
+            $stats['site_totals']['income'] += $application_fee + $reseller_fee;
+            $stats['site_totals']['profit'] += $reseller_fee;
+
             if (!isset($stats['revenue_by_date'][$order_date])) {
                 $stats['revenue_by_date'][$order_date] = 0;
                 $stats['orders_by_date'][$order_date] = 0;
@@ -121,9 +136,9 @@ class ResellerStatsPage
         echo '<h1 class="dtfreseller-tab-title">Reseller Dashboard</h1>';
 
         echo '<div class="stats-cards">';
-        echo '<div class="stat-card"><h3>Total Sales</h3><p>' . wc_price($stats['total_sales']) . '</p></div>';
+        echo '<div class="stat-card"><h3>Total Sales</h3><p>' . wc_price($stats['site_totals']['income']) . '</p></div>';
+        echo '<div class="stat-card"><h3>Total Profit</h3><p>' . wc_price($stats['site_totals']['profit']) . '</p></div>';
         echo '<div class="stat-card"><h3>Total Orders</h3><p>' . $stats['total_orders'] . '</p></div>';
-        echo '<div class="stat-card"><h3>Total Profit</h3><p>' . wc_price($stats['total_profit']) . '</p></div>';
         echo '<div class="stat-card"><h3>Top Product</h3><p>' . esc_html($popular_name) . '</p></div>';
         echo '</div>';
 
@@ -132,9 +147,8 @@ class ResellerStatsPage
         echo '<thead><tr><th>Stat</th><th>Value</th></tr></thead><tbody>';
         echo '<tr><td>Total Sales Revenue</td><td>' . wc_price($stats['total_sales']) . '</td></tr>';
         echo '<tr><td>Total Orders</td><td>' . $stats['total_orders'] . '</td></tr>';
-        echo '<tr><td>Total Profit (Your Margin)</td><td>' . wc_price($stats['total_profit']) . '</td></tr>';
+        echo '<tr><td>Total Profit (Your Margin)</td><td>' . wc_price($stats['site_totals']['profit']) . '</td></tr>';
         echo '<tr><td>Number of Products Sold</td><td>' . count($stats['products_in_use']) . '</td></tr>';
-        echo '<tr><td>Most Popular Product</td><td>' . esc_html($popular_name) . '</td></tr>';
         echo '</tbody></table>';
 
         echo '<h2 class="dtfreseller-tab-subtitle">Charts</h2>';

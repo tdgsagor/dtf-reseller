@@ -26,6 +26,10 @@ class ProductSync
         if ($post->post_status !== 'publish')
             return;
 
+        if (get_post_meta($post_id, '_importing_from_web2ink', true)) {
+            return;
+        }
+
         // Get all subsites except the main site
         $sites = get_sites(['number' => 0]);
         $site_ids = [];

@@ -100,7 +100,9 @@ class DtfReseller_Price_Margin_Field
         if (!is_main_site() && isset($data['post_type']) && $data['post_type'] === 'product' && !empty($postarr['ID'])) {
             $original_post = get_post($postarr['ID']);
 
-            if ($original_post && $original_post->post_type === 'product' && $data['post_status'] !== 'trash') {
+            $_original_product_id = get_post_meta($postarr['ID'], '_original_product_id', true);
+
+            if ($$_original_product_id && $original_post && $original_post->post_type === 'product' && $data['post_status'] !== 'trash') {
                 // Keep original post data
                 $data['post_title'] = $original_post->post_title;
                 $data['post_content'] = $original_post->post_content;

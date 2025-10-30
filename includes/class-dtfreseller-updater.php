@@ -48,7 +48,7 @@ class GhPluginUpdater
         $this->get_repository_info();
         $this->get_plugin_data();
 
-        if (version_compare($this->github_response['tag_name'] ?? 0, $transient->checked[$this->basename], 'gt')) {
+        if (isset($this->github_response['tag_name'], $transient->checked[$this->basename]) && version_compare($this->github_response['tag_name'] ?? 0, $transient->checked[$this->basename], 'gt')) {
             $plugin = [
                 'url' => $this->plugin_data['PluginURI'],
                 'slug' => current(explode('/', $this->basename)),
@@ -178,7 +178,7 @@ class GhPluginUpdater
             $response = current($response);
         }
 
-        if (GHPU_AUTH_TOKEN) {
+        if (GHPU_AUTH_TOKEN && isset($response['zipball_url'])) {
             $response['zipball_url'] = add_query_arg('access_token', GHPU_AUTH_TOKEN, $response['zipball_url']);
         }
 

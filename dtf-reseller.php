@@ -2,11 +2,11 @@
 
 use DtfReseller\DtfReseller_Price_Margin_Field;
 use DtfReseller\DtfReseller_Remove_Product_Adding;
-use DtfReseller\DtfReseller_Updater;
+use DtfReseller\DtfReseller_Subscription_Meta;
 /**
  * Plugin Name: DTF Reseller
  * Description: Sync products from main site to subsites and orders from subsites to main site
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: TheDevGarden
  * Network: true
  */
@@ -22,7 +22,9 @@ define('DTFRESELLER_SYNC_URL', plugin_dir_url(__FILE__));
 require_once DTFRESELLER_SYNC_PATH . 'includes/class-dtfreseller-sync.php';
 require_once DTFRESELLER_SYNC_PATH . 'includes/class-dtfreseller-remove-product-adding.php';
 require_once DTFRESELLER_SYNC_PATH . 'includes/class-dtfreseller-price-margin-field.php';
+require_once DTFRESELLER_SYNC_PATH . 'includes/class-dtfreseller-subscription-meta.php';
 require_once DTFRESELLER_SYNC_PATH . 'includes/class-dtfreseller-updater.php';
+require_once DTFRESELLER_SYNC_PATH . 'includes/web2ink/index.php';
 /* For Common Function */
 require_once DTFRESELLER_SYNC_PATH . 'admin/common-functions.php';
 
@@ -72,6 +74,7 @@ function dtfreseller_sync_init()
     new DtfReseller\DtfReseller();
     new DtfReseller_Remove_Product_Adding();
     new DtfReseller_Price_Margin_Field();
+    new DtfReseller_Subscription_Meta();
 }
 
 add_action('plugins_loaded', 'dtfreseller_sync_init');
@@ -80,10 +83,22 @@ if (is_admin()) {
     define('GH_REQUEST_URI', 'https://api.github.com/repos/%s/%s/releases');
     define('GHPU_USERNAME', 'tdgsagor');
     define('GHPU_REPOSITORY', 'dtf-reseller');
-    define('GHPU_AUTH_TOKEN', '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');
+    define('GHPU_AUTH_TOKEN', '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');
 
     // include_once plugin_dir_path(__FILE__) . '/GhPluginUpdater.php';
 
     $updater = new GhPluginUpdater(__FILE__);
     $updater->init();
 }
+
+add_action('template_redirect', function () {
+    if (is_main_site()) {
+        return; // allow main site
+    }
+
+    $status = get_blog_option(get_current_blog_id(), 'dtfreseller_status', 'Active');
+
+    if ($status === 'Inactive') {
+        wp_die(__('This site is inactive.', 'dtfreseller'), '', ['response' => 403]);
+    }
+});

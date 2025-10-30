@@ -73,6 +73,23 @@ class StatsPage
                 $timestamp = strtotime($order_date);
                 $date_str = date('Y-m-d', $timestamp);
 
+                $application_fee = floatval($order->get_meta('application_fee'));
+                $reseller_fee = floatval($order->get_meta('reseller_fee'));
+
+                // Initialize site totals if not set
+                if (!isset($stats['site_totals'][$site->blogname])) {
+                    $stats['site_totals'][$site->blogname] = [
+                        'income' => 0,
+                        'profit' => 0,
+                    ];
+                }
+
+                // Update site totals
+                $stats['site_totals'][$site->blogname]['income'] += $application_fee + $reseller_fee;
+                $stats['site_totals'][$site->blogname]['profit'] += $application_fee;
+
+                $stats['total_profit'] += $application_fee;
+
                 $stats['total_sales'] += $order_total;
                 $stats['total_orders']++;
 
@@ -98,7 +115,6 @@ class StatsPage
                     restore_current_blog();
 
                     $profit = ($reseller_price - $base_price) * $qty;
-                    $stats['total_profit'] += $profit;
 
                     // Product usage and mapping
                     $stats['products_in_use'][$_original_product_id] = true;
@@ -176,6 +192,20 @@ class StatsPage
         echo '<div class="stat-card"><h3>Active Resellers</h3><p>' . $stats['active_resellers'] . ' / ' . $stats['total_resellers'] . '</p></div>';
         echo '<div class="stat-card"><h3>Top Product</h3><p>' . esc_html($popular_name) . '</p></div>';
         echo '</div>';
+
+        echo '<h2 class="dtfreseller-tab-subtitle">Income & Profit Per Reseller</h2>';
+        echo '<table class="widefat striped">';
+        echo '<thead><tr><th>Reseller</th><th>Total Income</th><th>Total Profit</th></tr></thead><tbody>';
+
+        foreach ($stats['site_totals'] as $site_name => $totals) {
+            echo '<tr>';
+            echo '<td>' . esc_html($site_name) . '</td>';
+            echo '<td>' . wc_price($totals['income']) . '</td>';
+            echo '<td>' . wc_price($totals['profit']) . '</td>';
+            echo '</tr>';
+        }
+
+        echo '</tbody></table>';
 
         // Summary Table
         echo '<h2 class="dtfreseller-tab-subtitle">Summary</h2>';

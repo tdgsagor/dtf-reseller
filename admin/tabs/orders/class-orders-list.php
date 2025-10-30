@@ -17,7 +17,12 @@ class OrdersList extends \WP_List_Table
             'ajax' => false
         ]);
 
-        $this->sites = get_sites();
+        $this->sites = array_filter(
+            get_sites(['number' => 0]),
+            function ($site) {
+                return (int) $site->blog_id !== (int) get_main_site_id();
+            }
+        );
     }
 
     public function prepare_items()
@@ -67,7 +72,8 @@ class OrdersList extends \WP_List_Table
         $this->items = $orders_data;
     }
 
-    public function get_columns() {
+    public function get_columns()
+    {
         return [
             'order_id' => __('Order', 'textdomain'),
             'site_name' => __('Site Name', 'textdomain'),

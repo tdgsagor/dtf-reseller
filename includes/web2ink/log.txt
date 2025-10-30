@@ -1,0 +1,18 @@
+reseller_margin: 15
+before
+unit: 33.81
+design: 0
+total: 33.81
+after
+unit: 38.8815
+design: 0
+total: 38.8815
+reseller_margin: 10
+before
+unit: 26.23
+design: 4.92
+total: 26.23
+after
+unit: 28.853
+design: 5.412
+total: 28.853

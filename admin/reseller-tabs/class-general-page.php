@@ -14,7 +14,7 @@ class ResellerGeneralPage
     {
         ?>
         <form method="post">
-            <?php wp_nonce_field('dtfreseller_reseller_settings'); ?>
+            <?php wp_nonce_field('dtfreseller_reseller_settings', 'dtfreseller_reseller_settings_nonce'); ?>
             <h2 class="dtfreseller-tab-title">Global Settings</h2>
             <table class="form-table">
                 <tr>
@@ -27,14 +27,21 @@ class ResellerGeneralPage
                     </td>
                 </tr>
             </table>
-            <?php submit_button('Save Global Settings'); ?>
+            <?php submit_button('Save Global Settings', 'primary', 'save_general_submit'); ?>
         </form>
         <?php
     }
 
     public function handle_form_submissions()
     {
-        if (isset($_POST['submit']) && check_admin_referer('dtfreseller_reseller_settings')) {
+        // if (isset($_POST['submit']) && check_admin_referer('dtfreseller_reseller_settings')) {
+        if (
+            isset($_GET['page']) &&
+            $_GET['page'] === 'dtfreseller-resellers' &&
+            (!isset($_GET['tab']) || $_GET['tab'] === 'general') &&
+            isset($_POST['save_general_submit']) &&
+            check_admin_referer('dtfreseller_reseller_settings', 'dtfreseller_reseller_settings_nonce')
+        ) {
             update_option('dtfreseller_enable_products', isset($_POST['enable_product_sync']) ? 1 : 0);
             update_option('dtfreseller_enable_orders', isset($_POST['enable_order_sync']) ? 1 : 0);
 

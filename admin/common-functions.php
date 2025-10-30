@@ -155,6 +155,9 @@ class CommonFunctions
                         }
                     }
 
+                    $gallery_ids_str = get_post_meta($product_id, '_product_image_gallery', true);
+                    $gallery_ids = !empty($gallery_ids_str) ? explode(',', $gallery_ids_str) : [];
+
                     $products[] = [
                         'product_id' => $product_id,
                         'product' => $product,
@@ -162,10 +165,13 @@ class CommonFunctions
                         'meta' => get_post_meta($product_id),
                         'terms' => $terms,
                         'thumbnail_id' => get_post_thumbnail_id($product_id),
+                        'gallery_ids' => $gallery_ids,
                         'variations' => $product->is_type('variable') ? $product->get_children() : []
                     ];
                 }
             }
+
+            // file_put_contents(__DIR__ . '/log.txt', 'products: ' . print_r($products, true) . PHP_EOL, FILE_APPEND);
 
             restore_current_blog();
 
@@ -174,6 +180,73 @@ class CommonFunctions
             }
 
             foreach ($site_ids as $site_id) {
+                /* Syncing Attributes Started */
+                switch_to_blog(get_main_site_id());
+
+                // Get all product attributes
+                global $wpdb;
+                $attributes = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}woocommerce_attribute_taxonomies");
+
+                // Get all taxonomies (attribute terms)
+                $taxonomies = [];
+                foreach ($attributes as $attribute) {
+                    $taxonomy = 'pa_' . $attribute->attribute_name;
+                    $taxonomies[$taxonomy] = get_terms([
+                        'taxonomy' => $taxonomy,
+                        'hide_empty' => false,
+                    ]);
+                }
+
+                restore_current_blog();
+
+                // Switch to subsite
+                switch_to_blog($site_id);
+
+                // Sync attribute taxonomies
+                foreach ($attributes as $attribute) {
+                    $exists = $wpdb->get_var($wpdb->prepare(
+                        "SELECT attribute_id FROM {$wpdb->prefix}woocommerce_attribute_taxonomies WHERE attribute_name = %s",
+                        $attribute->attribute_name
+                    ));
+
+                    if (!$exists) {
+                        $wpdb->insert(
+                            "{$wpdb->prefix}woocommerce_attribute_taxonomies",
+                            [
+                                'attribute_name' => $attribute->attribute_name,
+                                'attribute_label' => $attribute->attribute_label,
+                                'attribute_type' => $attribute->attribute_type,
+                                'attribute_orderby' => $attribute->attribute_orderby,
+                                'attribute_public' => $attribute->attribute_public,
+                            ]
+                        );
+                    }
+                }
+
+                // Sync terms
+                foreach ($taxonomies as $taxonomy => $terms) {
+                    if (!taxonomy_exists($taxonomy)) {
+                        register_taxonomy($taxonomy, 'product');
+                    }
+
+                    foreach ($terms as $term) {
+                        if (!term_exists($term->name, $taxonomy)) {
+                            wp_insert_term($term->name, $taxonomy, [
+                                'slug' => $term->slug,
+                                'description' => $term->description,
+                                'parent' => $term->parent,
+                            ]);
+                        }
+                    }
+                }
+                do_action('woocommerce_attribute_taxonomy_updated');
+                delete_transient('wc_attribute_taxonomies');
+                do_action('woocommerce_attribute_taxonomy_updated');
+
+                restore_current_blog();
+                /* Syncing Attributes Ended */
+
+
                 switch_to_blog($site_id);
 
                 foreach ($products as $p) {
@@ -222,26 +295,26 @@ class CommonFunctions
                         $margin = floatval(get_option('dtfr_default_product_margin') ?? 0);
                         update_post_meta($new_product_id, '_ms_price_margin', $margin);
 
-                        if ($margin > 0) {
-                            $with_margin_product_price = $product_price * (1 + $margin / 100);
-                            $with_margin_regular_price = $regular_price * (1 + $margin / 100);
-                            $with_margin_sale_price = $sale_price * (1 + $margin / 100);
+                        // if ($margin > 0) {
+                        //     $with_margin_product_price = $product_price * (1 + $margin / 100);
+                        //     $with_margin_regular_price = $regular_price * (1 + $margin / 100);
+                        //     $with_margin_sale_price = $sale_price * (1 + $margin / 100);
 
-                            $new_product = wc_get_product($new_product_id);
+                        //     $new_product = wc_get_product($new_product_id);
 
-                            if ($new_product) {
-                                $new_product->set_price($with_margin_product_price);
-                                $new_product->set_regular_price($with_margin_regular_price);
+                        //     if ($new_product) {
+                        //         $new_product->set_price($with_margin_product_price);
+                        //         $new_product->set_regular_price($with_margin_regular_price);
 
-                                if ($sale_price > 0) {
-                                    $new_product->set_sale_price($with_margin_sale_price);
-                                } else {
-                                    $new_product->set_sale_price('');
-                                }
+                        //         if ($sale_price > 0) {
+                        //             $new_product->set_sale_price($with_margin_sale_price);
+                        //         } else {
+                        //             $new_product->set_sale_price('');
+                        //         }
 
-                                $new_product->save();
-                            }
-                        }
+                        //         $new_product->save();
+                        //     }
+                        // }
 
                         // Sync terms and term meta
                         foreach ($p['terms'] as $term) {
@@ -295,6 +368,32 @@ class CommonFunctions
                             }
                         }
 
+                        if (!empty($p['gallery_ids'])) { // assume $p['gallery_ids'] is an array of attachment IDs
+                            $new_gallery_ids = [];
+
+                            foreach ($p['gallery_ids'] as $gallery_id) {
+                                if ($gallery_id) {
+                                    switch_to_blog(get_main_site_id());
+                                    $file_path = get_attached_file($gallery_id);
+                                    $attachment = get_post($gallery_id);
+                                    switch_to_blog($site_id);
+
+                                    if ($file_path && $attachment) {
+                                        // Copy the attachment to the new site
+                                        $new_gallery_id = self::copy_attachment_with_data($attachment, $file_path, $new_product_id);
+                                        if ($new_gallery_id) {
+                                            $new_gallery_ids[] = $new_gallery_id;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!empty($new_gallery_ids)) {
+                                // Save as comma-separated string in _product_image_gallery
+                                update_post_meta($new_product_id, '_product_image_gallery', implode(',', $new_gallery_ids));
+                            }
+                        }
+
                         // Product type
                         $product_type = $source_product->get_type();
                         wp_set_object_terms($new_product_id, $product_type, 'product_type');
@@ -341,7 +440,7 @@ class CommonFunctions
                                                 if ($file_path && $attachment) {
                                                     $new_thumb_id = self::copy_attachment_with_data($attachment, $file_path, $new_variation_id);
                                                     if ($new_thumb_id) {
-                                                        update_post_meta($new_variation_id, '_thumbnail_id', $new_thumb_id);
+                                                        // update_post_meta($new_variation_id, '_thumbnail_id', $new_thumb_id);
                                                     }
                                                 }
                                             }
@@ -369,15 +468,23 @@ class CommonFunctions
                                 $margin = floatval(get_option('dtfr_default_product_margin') ?? 0);
                                 update_post_meta($new_variation_id, '_ms_price_margin', $margin);
 
-                                if ($margin > 0) {
-                                    $with_margin_product_price = $product_price * (1 + $margin / 100);
-                                    $with_margin_regular_price = $regular_price * (1 + $margin / 100);
-                                    $with_margin_sale_price = $sale_price * (1 + $margin / 100);
+                                // if ($margin > 0) {
+                                //     $with_margin_product_price = $product_price * (1 + $margin / 100);
+                                //     $with_margin_regular_price = $regular_price * (1 + $margin / 100);
+                                //     $with_margin_sale_price = $sale_price * (1 + $margin / 100);
 
-                                    update_post_meta($new_variation_id, '_price', $with_margin_product_price);
-                                    update_post_meta($new_variation_id, '_regular_price', $with_margin_regular_price);
-                                    update_post_meta($new_variation_id, '_sale_price', $with_margin_sale_price);
-                                }
+                                //     if (!empty($with_margin_product_price) && $with_margin_product_price > 0) {
+                                //         update_post_meta($new_variation_id, '_price', $with_margin_product_price);
+                                //     }
+
+                                //     if (!empty($with_margin_regular_price) && $with_margin_regular_price > 0) {
+                                //         update_post_meta($new_variation_id, '_regular_price', $with_margin_regular_price);
+                                //     }
+
+                                //     if (!empty($with_margin_sale_price) && $with_margin_sale_price > 0) {
+                                //         update_post_meta($new_variation_id, '_sale_price', $with_margin_sale_price);
+                                //     }
+                                // }
                             }
                         }
 
@@ -412,6 +519,4 @@ class CommonFunctions
 
         return $result;
     }
-
-    // Add other common functions here
 }

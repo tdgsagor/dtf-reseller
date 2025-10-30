@@ -23,7 +23,7 @@ class ManualSyncPage
         restore_current_blog();
         ?>
         <form method="post">
-            <?php wp_nonce_field('dtfreseller_manual'); ?>
+            <?php wp_nonce_field('dtfreseller_manual', 'dtfreseller_manual_nonce'); ?>
             <h2 class="dtfreseller-tab-title">Manual Product Sync</h2>
             <table class="form-table">
                 <tr>
@@ -67,7 +67,14 @@ class ManualSyncPage
     public function handle_form_submissions()
     {
         // Handle manual sync
-        if (isset($_POST['sync_products']) && check_admin_referer('dtfreseller_manual')) {
+        if (
+            is_network_admin() &&
+            isset($_GET['page']) &&
+            $_GET['page'] === 'dtfreseller' &&
+            (!isset($_GET['tab']) || $_GET['tab'] === 'manual-sync') &&
+            isset($_POST['sync_products']) &&
+            check_admin_referer('dtfreseller_manual', 'dtfreseller_manual_nonce')
+        ) {
             $products = isset($_POST['products']) ? array_map('intval', $_POST['products']) : array();
             $sites = isset($_POST['sites']) ? array_map('intval', $_POST['sites']) : array();
 
