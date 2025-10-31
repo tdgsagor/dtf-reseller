@@ -70,7 +70,10 @@ class WC_Gateway_TDG_Payment extends WC_Payment_Gateway
             if ($_original_product_id) {
                 $reseller_margin = get_post_meta($item->get_product_id(), '_ms_price_margin', true);
                 $reseller_margin = $reseller_margin ? $reseller_margin : $default_reseller_margin;
-                $application_fee += $line_total * (100 - $reseller_margin) / 100;
+                // Direct charges: platform fee equals base price before reseller margin
+                // base_price = final_price / (1 + margin%)
+                $base_price = $reseller_margin > -100 ? ($line_total / (1 + ($reseller_margin / 100))) : $line_total;
+                $application_fee += $base_price;
             } else {
                 switch_to_blog(get_main_site_id());
                 $main_site_commission = get_site_option('reseller_product_comission');
@@ -86,17 +89,22 @@ class WC_Gateway_TDG_Payment extends WC_Payment_Gateway
         \Stripe\Stripe::setApiKey(get_blog_option(1, 'smc_stripe_secret_key')); // save this via admin settings
 
         try {
-            $client_id = get_option('smc_client_id');
+            $connected_account_id = get_option('smc_client_id');
 
+            if (empty($connected_account_id)) {
+                wc_add_notice('Payment error: Connected account is not configured.', 'error');
+                return;
+            }
+
+            // Direct charge on the connected account; processing fees billed to connected account
             $charge = \Stripe\Charge::create([
                 'amount' => intval($order->get_total() * 100),
                 'currency' => strtolower(get_woocommerce_currency()),
                 'source' => sanitize_text_field($_POST['tdg_stripe_token']),
                 'description' => 'Order #' . $order_id,
-                'application_fee_amount' => intval($application_fee * 100),
-                'transfer_data' => [
-                    'destination' => $client_id
-                ]
+                'application_fee_amount' => intval($application_fee * 100)
+            ], [
+                'stripe_account' => $connected_account_id
             ]);
 
             $order->payment_complete();
@@ -108,7 +116,7 @@ class WC_Gateway_TDG_Payment extends WC_Payment_Gateway
 
             return ['result' => 'success', 'redirect' => $this->get_return_url($order)];
         } catch (Exception $e) {
-            wc_add_notice('Payment errorss: ' . $e->getMessage(), 'error');
+            wc_add_notice('Payment error: ' . $e->getMessage(), 'error');
             return;
         }
     }
