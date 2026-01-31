@@ -105,7 +105,7 @@ class DtfReseller_Subscription_Meta
      */
     public function prevent_product_post_data_changes($data, $postarr)
     {
-        if (is_main_site() && isset($data['post_type']) && $data['post_type'] === 'product' && !empty($postarr['ID'])) {
+        if (!is_main_site() && isset($data['post_type']) && $data['post_type'] === 'product' && !empty($postarr['ID'])) {
             $original_post = get_post($postarr['ID']);
 
             if ($original_post && $original_post->post_type === 'product' && $data['post_status'] !== 'trash') {

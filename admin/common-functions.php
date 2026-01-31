@@ -61,6 +61,26 @@ class CommonFunctions
 
         return false;
     }
+    public static function check_existance_of_same_web2ink_product($_web2ink_productID)
+    {
+        $args = array(
+            'post_type' => 'product',
+            'meta_query' => array(
+                array(
+                    'key' => '_web2ink_productID',
+                    'value' => $_web2ink_productID,
+                    'compare' => '='
+                )
+            )
+        );
+
+        $query = new \WP_Query($args);
+        if ($query->have_posts()) {
+            return $query->posts[0]->ID;
+        }
+
+        return false;
+    }
     public static function copy_attachment_with_data($attachment, $source_file_path, $parent_post_id)
     {
         if (!$attachment || !file_exists($source_file_path)) {
@@ -156,18 +176,22 @@ class CommonFunctions
                     }
 
                     $gallery_ids_str = get_post_meta($product_id, '_product_image_gallery', true);
+                    $_web2ink_productID = get_post_meta($product_id, '_web2ink_productID', true);
                     $gallery_ids = !empty($gallery_ids_str) ? explode(',', $gallery_ids_str) : [];
 
-                    $products[] = [
-                        'product_id' => $product_id,
-                        'product' => $product,
-                        'post' => get_post($product_id),
-                        'meta' => get_post_meta($product_id),
-                        'terms' => $terms,
-                        'thumbnail_id' => get_post_thumbnail_id($product_id),
-                        'gallery_ids' => $gallery_ids,
-                        'variations' => $product->is_type('variable') ? $product->get_children() : []
-                    ];
+                    if ($_web2ink_productID) {
+                        $products[] = [
+                            'product_id' => $product_id,
+                            '_web2ink_productID' => $_web2ink_productID,
+                            'product' => $product,
+                            'post' => get_post($product_id),
+                            'meta' => get_post_meta($product_id),
+                            'terms' => $terms,
+                            'thumbnail_id' => get_post_thumbnail_id($product_id),
+                            'gallery_ids' => $gallery_ids,
+                            'variations' => $product->is_type('variable') ? $product->get_children() : []
+                        ];
+                    }
                 }
             }
 
@@ -254,6 +278,14 @@ class CommonFunctions
                         $source_product = $p['product'];
                         $source_post = $p['post'];
                         $source_meta = $p['meta'];
+
+                        // Check if product already exists on this subsite
+                        $existing_web2ink_productID = self::check_existance_of_same_web2ink_product($p['_web2ink_productID']);
+
+                        // Skip if product already exists on this subsite
+                        if ($existing_web2ink_productID) {
+                            continue;
+                        }
 
                         $new_post = [
                             'post_title' => $source_post->post_title,

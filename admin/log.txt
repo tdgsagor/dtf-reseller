@@ -1,0 +1,51 @@
+[2025-12-06 06:29:56] Successfully copied attachment  Context: {"new_attachment_id":630,"parent_post_id":629}
+[2025-12-06 06:29:57] Successfully copied attachment  Context: {"new_attachment_id":322,"parent_post_id":321}
+[2025-12-06 07:06:53] Successfully copied attachment  Context: {"new_attachment_id":632,"parent_post_id":631}
+[2025-12-06 07:06:53] Successfully copied attachment  Context: {"new_attachment_id":324,"parent_post_id":323}
+[2025-12-06 07:11:00] Successfully copied attachment  Context: {"new_attachment_id":634,"parent_post_id":633}
+[2025-12-06 07:11:01] Successfully copied attachment  Context: {"new_attachment_id":326,"parent_post_id":325}
+[2025-12-06 07:12:26] Successfully copied attachment  Context: {"new_attachment_id":636,"parent_post_id":635}
+[2025-12-06 07:12:27] Successfully copied attachment  Context: {"new_attachment_id":328,"parent_post_id":327}
+[2025-12-07 17:49:58] Successfully copied attachment  Context: {"new_attachment_id":640,"parent_post_id":639}
+[2025-12-07 17:49:59] Successfully copied attachment  Context: {"new_attachment_id":414,"parent_post_id":413}
+[2025-12-07 18:23:50] Successfully copied attachment  Context: {"new_attachment_id":642,"parent_post_id":641}
+[2025-12-07 18:23:51] Successfully copied attachment  Context: {"new_attachment_id":416,"parent_post_id":415}
+[2025-12-07 18:25:32] Successfully copied attachment  Context: {"new_attachment_id":644,"parent_post_id":643}
+[2025-12-07 18:25:33] Successfully copied attachment  Context: {"new_attachment_id":418,"parent_post_id":417}
+[2025-12-07 18:27:23] Successfully copied attachment  Context: {"new_attachment_id":646,"parent_post_id":645}
+[2025-12-07 18:27:24] Successfully copied attachment  Context: {"new_attachment_id":420,"parent_post_id":419}
+[2025-12-07 18:50:57] Successfully copied attachment  Context: {"new_attachment_id":648,"parent_post_id":647}
+[2025-12-07 18:50:58] Successfully copied attachment  Context: {"new_attachment_id":422,"parent_post_id":421}
+[2025-12-08 04:34:27] Successfully copied attachment  Context: {"new_attachment_id":652,"parent_post_id":651}
+[2025-12-08 04:34:28] Successfully copied attachment  Context: {"new_attachment_id":426,"parent_post_id":425}
+[2025-12-08 04:35:03] Successfully copied attachment  Context: {"new_attachment_id":654,"parent_post_id":653}
+[2025-12-08 04:35:05] Successfully copied attachment  Context: {"new_attachment_id":428,"parent_post_id":427}
+[2025-12-08 05:28:48] Successfully copied attachment  Context: {"new_attachment_id":656,"parent_post_id":655}
+[2025-12-08 05:28:49] Successfully copied attachment  Context: {"new_attachment_id":430,"parent_post_id":429}
+[2025-12-08 05:30:57] Successfully copied attachment  Context: {"new_attachment_id":658,"parent_post_id":657}
+[2025-12-08 05:30:58] Successfully copied attachment  Context: {"new_attachment_id":432,"parent_post_id":431}
+[2025-12-08 05:31:13] Successfully copied attachment  Context: {"new_attachment_id":660,"parent_post_id":659}
+[2025-12-08 05:31:14] Successfully copied attachment  Context: {"new_attachment_id":434,"parent_post_id":433}
+[2025-12-08 05:38:25] Successfully copied attachment  Context: {"new_attachment_id":662,"parent_post_id":661}
+[2025-12-08 05:38:26] Successfully copied attachment  Context: {"new_attachment_id":436,"parent_post_id":435}
+[2025-12-08 05:39:00] Successfully copied attachment  Context: {"new_attachment_id":664,"parent_post_id":663}
+[2025-12-08 05:39:00] Successfully copied attachment  Context: {"new_attachment_id":438,"parent_post_id":437}
+[2025-12-08 06:22:14] Successfully copied attachment  Context: {"new_attachment_id":666,"parent_post_id":665}
+[2025-12-08 06:22:15] Successfully copied attachment  Context: {"new_attachment_id":440,"parent_post_id":439}
+[2025-12-08 06:23:29] Successfully copied attachment  Context: {"new_attachment_id":668,"parent_post_id":667}
+[2025-12-08 06:23:31] Successfully copied attachment  Context: {"new_attachment_id":442,"parent_post_id":441}
+[2025-12-08 06:24:07] Successfully copied attachment  Context: {"new_attachment_id":670,"parent_post_id":669}
+[2025-12-08 06:24:08] Successfully copied attachment  Context: {"new_attachment_id":444,"parent_post_id":443}
+[2025-12-08 06:26:29] Successfully copied attachment  Context: {"new_attachment_id":672,"parent_post_id":671}
+[2025-12-08 06:26:30] Successfully copied attachment  Context: {"new_attachment_id":446,"parent_post_id":445}
+[2025-12-08 06:29:36] Successfully copied attachment  Context: {"new_attachment_id":674,"parent_post_id":673}
+[2025-12-08 06:29:38] Successfully copied attachment  Context: {"new_attachment_id":448,"parent_post_id":447}
+[2025-12-08 06:57:11] Global sync error  Context: {"message":"No valid products found.","product_ids":[229],"site_ids":[4,5]}
+[2025-12-08 06:59:33] Global sync error  Context: {"message":"No valid products found.","product_ids":[488],"site_ids":[4,5]}
+[2025-12-08 07:50:43] Global sync error  Context: {"message":"No valid products found.","product_ids":[229],"site_ids":[4,5]}
+[2025-12-08 10:09:44] Global sync error  Context: {"message":"No valid products found.","product_ids":[229],"site_ids":[4,5]}
+[2025-12-08 10:12:19] Global sync error  Context: {"message":"No valid products found.","product_ids":[229],"site_ids":[4,5]}
+[2025-12-08 10:13:58] Global sync error  Context: {"message":"No valid products found.","product_ids":[229],"site_ids":[4,5]}
+[2025-12-08 10:16:00] Global sync error  Context: {"message":"No valid products found.","product_ids":[229],"site_ids":[4,5]}
+[2025-12-08 10:18:13] Global sync error  Context: {"message":"No valid products found.","product_ids":[488],"site_ids":[4,5]}
+[2025-12-17 13:41:23] Global sync error  Context: {"message":"No valid products found.","product_ids":[229],"site_ids":[4,5]}
